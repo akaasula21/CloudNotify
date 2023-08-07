@@ -143,7 +143,7 @@ def initialize():
         conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
         cur = conn.cursor()
         try:
-            cur.execute("DROP TABLE userdetails;")
+            cur.execute("DROP TABLE IF EXISTS userdetails;")
             print("table deleted")
         except Exception as e:
             print("cannot delete table")
