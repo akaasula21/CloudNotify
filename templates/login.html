@@ -1,27 +1,66 @@
-<DOCTYPE! html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Basic html layout example</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui/dist/semantic.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+    .login-container {
+      max-width: 400px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 5px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+    .login-container h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .login-container form {
+      margin-top: 1rem;
+    }
+    .login-container label {
+      font-weight: bold;
+    }
+    .login-container .field {
+      margin-bottom: 1rem;
+    }
+  </style>
 </head>
-<body class="hello">
+<body>
   <header>
-    <h1> Sample Application</h1>
+    <h1>Sample Application</h1>
   </header>
 
-<h2> Log In </h2>
-<form class="ui form" action="/mainpage" method="get">
-    <div class="field">
+  <div class="login-container">
+    <h2>Login</h2>
+    <form class="ui form" action="/mainpage" method="get">
+      <div class="field">
         <label>Email</label>
-        <input type="text" name="email" placeholder="email"><br>
+        <input type="text" name="email" placeholder="Email">
+      </div>
+      <div class="field">
         <label>Password</label>
-        <input type="text" name="password" placeholder="password"><br>
-    </div>
-    <button class="ui blue button" type="submit">Login</button>
-    
-</form>
-
-  <a href="/register"> Register</a>
+        <input type="password" name="password" placeholder="Password">
+      </div>
+      <button class="ui blue button" type="submit">Login</button>
+    </form>
+    <p>New user? <a href="/register">Register</a></p>
+  </div>
 
 </body>
 </html>

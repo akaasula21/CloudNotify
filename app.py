@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 import psycopg2
 import boto3
 import json
@@ -39,44 +39,72 @@ def register():
     return render_template("register.html")
 
 
+@app.route('/upload', methods=["POST"])
+def upload():
+    # Get user information from the session or any authentication mechanism you're using
+    user_email = session.get("user_email")  # Replace with your actual user authentication logic
+
+    if user_email:
+        f = request.files['file']
+        filename = secure_filename(f.filename)
+
+        # AWS S3 client setup
+        s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
+
+        # Upload file to S3 bucket
+        s3_key = "media/" + filename
+        s3_client.upload_fileobj(f, AWS_STORAGE_BUCKET_NAME, s3_key)
+
+        # Database insertion
+        conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO userdetails(email, imagelocation) VALUES(%s, %s);",
+            (user_email, s3_key)
+        )
+        conn.commit()
+        f.close()
+
+        # Lambda and SES integration (if needed)
+
+        return redirect("/mainpage")  # Redirect to the main page or wherever you want
+    else:
+        return redirect("/login")  # Redirect to the login page if not logged in
+
+
 @app.route('/add', methods=["POST"])
 def add():
     email = request.form.get("email")
     password = request.form.get("password")
     desc = request.form.get("description")
-    #  imagepath=request.form.get("imagefilepath")
     f = request.files['file']
-    filename = f.filename.split("\\")[-1]
-    f.save(secure_filename(filename))
-    # filename=imagepath.split("\\")[-1]
+    filename = secure_filename(f.filename)
 
-    client = boto3.client("s3",
-                          aws_access_key_id="AKIA6AN2GCBWFE2ZXYNR",
-                          aws_secret_access_key="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",
-                          # aws_session_token="FwoGZXIvYXdzELX//////////wEaDPWvF69TancW7W8QECK8AfVQ2bketm8GGXxu/jQj8xN5igYCtViBqbo1vgEnZgnsW3xX6WJkShy30InHduHjECJcx3OC/9+PBSOSUKIT9xJvL3v5LdH6IwNtEOf0+tt+naZk40zDF/ZoersHU4UOCer+eYcVS27haByKQY0JJtiiGlxXcazVcyykoqNTORxtHgExkRlJ58vwcuLXBTmBOdFWyKN8QFke+tmnebdfs0rOVZwc9fCvsNseS0k6h2tEhHBSUJH19pXnJkd1KJuTyqUGMi175Qaybc9XNONF479KVknYfWkWr7gH3yY37A00jTOb+UCeJ5jbI2LWNS5FkGg="
+    # AWS S3 client setup
+    s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
 
-                          )
-    client.upload_file(filename, AWS_STORAGE_BUCKET_NAME, "media/" + filename)
+    # Upload file to S3 bucket
+    s3_key = "media/" + filename
+    s3_client.upload_fileobj(f, AWS_STORAGE_BUCKET_NAME, s3_key)
 
+    # Database insertion
     conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO userdetails(email,password,description,imagelocation) VALUES('" + email + "','" + password + "','" + desc + "', '" + filename + "');")
-    print("Insert Success")
+        "INSERT INTO userdetails(email, password, description, imagelocation) VALUES(%s, %s, %s, %s);",
+        (email, password, desc, s3_key)
+    )
     conn.commit()
-    os.remove(filename)
+    f.close()
 
-    lambda_client = boto3.client('lambda',
-                                 aws_access_key_id=ACCESS_KEY,
-                                 aws_secret_access_key=SECRET_KEY,
-                                 region_name='us-east-2')
-
+    # Lambda and SES integration
+    lambda_client = boto3.client('lambda', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name='us-east-2')
     lambda_payload = {"email": email}
-    lambda_client.invoke(FunctionName='lambdaSNS',
-                         InvocationType='Event',
-                         Payload=json.dumps(lambda_payload))
+    lambda_client.invoke(FunctionName='lambdaSNS', InvocationType='Event', Payload=json.dumps(lambda_payload))
 
     return redirect("/")
+
+
 
 
 @app.route('/mainpage', methods=["GET"])
