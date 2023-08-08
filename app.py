@@ -85,7 +85,7 @@ def upload():
 
     print("ALL DONE")
 
-    return redirect("/")  # Redirect to desired page after processing
+    return redirect("success.html")  # Redirect to desired page after processing
 
 
 @app.route('/add', methods=["POST"])
