@@ -131,8 +131,8 @@ def mainpage():
         print(query_results)
         cur.execute("SELECT * FROM userdetails Where email ='" + email + "' AND password = '" + password + "';")
         query_results = cur.fetchall()
-        print("Heyyyyyyyy", query_results)
-        if len(query_results) == 1:
+        print(query_results)
+        if len(query_results) > 1:
             return render_template("upload.html")
         else:
             return redirect("/notfound")
