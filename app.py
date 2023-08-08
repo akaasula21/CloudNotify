@@ -18,6 +18,13 @@ DBNAME = "postgres"
 
 app = Flask(__name__)
 
+sns = boto3.client('sns', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name="us-east-2")
+
+
+def create_subscriptions(topicArn, protocol, endpoint):
+    response = sns.subscribe(TopicArn=topicArn, Protocol=protocol, Endpoint=endpoint, ReturnSubscriptionArn=True)
+    return response['SubscriptionArn']
+
 
 @app.route('/')
 def main():
@@ -62,17 +69,29 @@ def upload():
     # Trigger Lambda function
     file_url = s3_client.generate_presigned_url('get_object', Params={'Bucket': AWS_STORAGE_BUCKET_NAME, 'Key': s3_key},
                                                 ExpiresIn=3600)
-    lambda_client = boto3.client("lambda", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY,
-                                 region_name="us-east-2")
-    lambda_payload = {
-        "file_link": file_url,  # Replace with actual file link
-        "email_addresses": emails
-    }
-    lambda_response = lambda_client.invoke(
-        FunctionName="akaasula_function",
-        InvocationType="Event",
-        Payload=json.dumps(lambda_payload)
-    )
+
+    message = "Hello, Click on the link to download the file from s3:   \n{}".format(file_url)
+    topic = sns.create_topic(Name="akaasula_topic")
+    for email in emails:
+        if email:
+            topicArn = topic['TopicArn']
+            protocol = 'email'
+            endpoint = email
+            response = create_subscriptions(topicArn, protocol, endpoint)
+            sns.publish(TopicArn=topicArn, Subject="click the link to download the file  ",
+                        Message=message)
+
+    # lambda_client = boto3.client("lambda", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY,
+    #                              region_name="us-east-2")
+    # lambda_payload = {
+    #     "file_link": file_url,  # Replace with actual file link
+    #     "email_addresses": emails
+    # }
+    # lambda_response = lambda_client.invoke(
+    #     FunctionName="akaasula_function",
+    #     InvocationType="Event",
+    #     Payload=json.dumps(lambda_payload)
+    # )
     print("ALL DONE")
 
     return redirect("/")  # Redirect to desired page after processing
