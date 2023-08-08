@@ -56,7 +56,7 @@ def upload():
     filename = secure_filename(uploaded_file.filename)
 
     # Upload file to AWS S3
-    s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
+    s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name="us-east-2")
     s3_key = "media/" + filename
     s3_client.upload_fileobj(uploaded_file, AWS_STORAGE_BUCKET_NAME, s3_key)
 
