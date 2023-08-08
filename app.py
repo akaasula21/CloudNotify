@@ -169,7 +169,7 @@ def initialize():
         except Exception as e:
             print("cannot delete table")
         cur.execute(
-            "CREATE TABLE userdetails(email VARCHAR(20), password VARCHAR(20), description VARCHAR(50), imagelocation VARCHAR(50));")
+            "CREATE TABLE userdetails(email VARCHAR(100), password VARCHAR(50), description VARCHAR(200), imagelocation VARCHAR(300));")
         print("table created")
 
         conn.commit()
