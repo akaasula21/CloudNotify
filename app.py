@@ -71,7 +71,7 @@ def upload():
     # Trigger Lambda function
     file_url = s3_client.generate_presigned_url('get_object', Params={'Bucket': AWS_STORAGE_BUCKET_NAME, 'Key': s3_key},
                                                 ExpiresIn=3600)
-
+    print("Generated file url is:", file_url)
     message = "Hello, Click on the link to download the file from s3:   \n  \n{}".format(file_url)
     topic = sns.create_topic(Name='akaasula')
     for email in emails:
