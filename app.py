@@ -41,70 +41,82 @@ def register():
 
 @app.route('/upload', methods=["POST"])
 def upload():
-    # Get user information from the session or any authentication mechanism you're using
-    user_email = session.get("user_email")  # Replace with your actual user authentication logic
+    emails = request.form.getlist("emails[]")
+    uploaded_file = request.files['file']
+    filename = secure_filename(uploaded_file.filename)
 
-    if user_email:
-        f = request.files['file']
-        filename = secure_filename(f.filename)
+    # Upload file to AWS S3
+    s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
+    s3_key = "media/" + filename
+    s3_client.upload_fileobj(uploaded_file, AWS_STORAGE_BUCKET_NAME, s3_key)
 
-        # AWS S3 client setup
-        s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
-
-        # Upload file to S3 bucket
-        s3_key = "media/" + filename
-        s3_client.upload_fileobj(f, AWS_STORAGE_BUCKET_NAME, s3_key)
+    # Process the email addresses and perform necessary actions
+    # Example: send emails to the provided email addresses
+  # Redirect to desired page after processing
 
         # Database insertion
-        conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO userdetails(email, imagelocation) VALUES(%s, %s);",
-            (user_email, s3_key)
-        )
-        conn.commit()
-        f.close()
+        # conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
+        # cur = conn.cursor()
+        # cur.execute(
+        #     "INSERT INTO userdetails(email, imagelocation) VALUES(%s, %s);",
+        #     (user_email, s3_key)
+        # )
+        # conn.commit()
+        # f.close()
 
         # Lambda and SES integration (if needed)
-
-        return redirect("/mainpage")  # Redirect to the main page or wherever you want
-    else:
-        return redirect("/login")  # Redirect to the login page if not logged in
+    #
+    #     return redirect("/mainpage")  # Redirect to the main page or wherever you want
+    # else:
+    #     return redirect("/login")  # Redirect to the login page if not logged in
 
 
 @app.route('/add', methods=["POST"])
 def add():
+    name = request.form.get("name")
     email = request.form.get("email")
     password = request.form.get("password")
-    desc = request.form.get("description")
-    f = request.files['file']
-    filename = secure_filename(f.filename)
+    confirm_password = request.form.get("confirm_password")
 
-    # AWS S3 client setup
-    s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
-
-    # Upload file to S3 bucket
-    s3_key = "media/" + filename
-    s3_client.upload_fileobj(f, AWS_STORAGE_BUCKET_NAME, s3_key)
+    if password != confirm_password:
+        print("passwords do not match")
+    # f = request.files['file']
+    # filename = secure_filename(f.filename)
+    #
+    # # AWS S3 client setup
+    # s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
+    #
+    # # Upload file to S3 bucket
+    # s3_key = "media/" + filename
+    # s3_client.upload_fileobj(f, AWS_STORAGE_BUCKET_NAME, s3_key)
 
     # Database insertion
-    conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO userdetails(email, password, description, imagelocation) VALUES(%s, %s, %s, %s);",
-        (email, password, desc, s3_key)
-    )
-    conn.commit()
-    f.close()
+    try:
+
+        conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO userdetails(name, email, password) VALUES(%s, %s, %s, %s);",
+            (name, email, password)
+        )
+        conn.commit()
+        return render_template('upload.html')
+    except Exception as e:
+        print("Connection failed due to {}".format(e))
+        return redirect("/")
+
+
+    # f.close()
 
     # Lambda and SES integration
-    lambda_client = boto3.client('lambda', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name='us-east-2')
-    lambda_payload = {"email": email}
-    lambda_client.invoke(FunctionName='akaasula_function', InvocationType='Event', Payload=json.dumps(lambda_payload))
+    # lambda_client = boto3.client('lambda', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name='us-east-2')
+    # lambda_payload = {"email": email}
+    # print("email uploaded is", email)
+    # lambda_client.invoke(FunctionName='akaasula_function', InvocationType='Event', Payload=json.dumps(lambda_payload))
 
-    return redirect("/")
 
 
+@app.route('/')
 
 
 @app.route('/mainpage', methods=["GET"])
