@@ -55,7 +55,7 @@ def upload():
     cur = conn.cursor()
     for email in emails:
         cur.execute(
-            "INSERT INTO fileuploadtable(user_name, email, filename) VALUES(%s, %s, %s);",
+            "INSERT INTO fileuploadtable(user_email, email, filename) VALUES(%s, %s, %s);",
             (user_email, email, s3_key))
 
     conn.commit()
