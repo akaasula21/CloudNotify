@@ -18,12 +18,14 @@ DBNAME = "postgres"
 
 app = Flask(__name__)
 
-sns = boto3.client('sns', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name="us-east-2")
 
 
 def create_subscriptions(topicArn, protocol, endpoint):
     response = sns.subscribe(TopicArn=topicArn, Protocol=protocol, Endpoint=endpoint, ReturnSubscriptionArn=True)
     return response['SubscriptionArn']
+
+
+sns = boto3.client('sns', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name="us-east-2")
 
 
 @app.route('/')
@@ -71,7 +73,7 @@ def upload():
                                                 ExpiresIn=3600)
 
     message = "Hello, Click on the link to download the file from s3:   \n{}".format(file_url)
-    topic = sns.create_topic(Name='akaasula_topic')
+    topic = sns.create_topic(Name='akaasula')
     for email in emails:
         if email:
             topicArn = topic['TopicArn']
@@ -81,17 +83,6 @@ def upload():
             sns.publish(TopicArn=topicArn, Subject="click the link to download the file  ",
                         Message=message)
 
-    # lambda_client = boto3.client("lambda", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY,
-    #                              region_name="us-east-2")
-    # lambda_payload = {
-    #     "file_link": file_url,  # Replace with actual file link
-    #     "email_addresses": emails
-    # }
-    # lambda_response = lambda_client.invoke(
-    #     FunctionName="akaasula_function",
-    #     InvocationType="Event",
-    #     Payload=json.dumps(lambda_payload)
-    # )
     print("ALL DONE")
 
     return redirect("/")  # Redirect to desired page after processing
@@ -106,17 +97,7 @@ def add():
 
     if password != confirm_password:
         print("passwords do not match")
-    # f = request.files['file']
-    # filename = secure_filename(f.filename)
-    #
-    # # AWS S3 client setup
-    # s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
-    #
-    # # Upload file to S3 bucket
-    # s3_key = "media/" + filename
-    # s3_client.upload_fileobj(f, AWS_STORAGE_BUCKET_NAME, s3_key)
 
-    # Database insertion
     try:
 
         conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
@@ -152,7 +133,7 @@ def mainpage():
         query_results = cur.fetchall()
         print(query_results)
         if len(query_results) == 1:
-            return render_template("mainpage.html")
+            return render_template("upload.html")
         else:
             return redirect("/notfound")
     except Exception as e:
