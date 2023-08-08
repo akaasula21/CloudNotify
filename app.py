@@ -47,6 +47,11 @@ def register():
     return render_template("register.html")
 
 
+@app.route('/success')
+def success():
+    return render_template("success.html")
+
+
 @app.route('/upload', methods=["POST"])
 def upload():
     emails = [request.form.get(f"email{i}") for i in range(1, 6) if request.form.get(f"email{i}")]
@@ -139,7 +144,6 @@ def login_page():
     except Exception as e:
         print("Database connection failed due to {}".format(e))
         return redirect("/")
-
 
 
 @app.route('/initialize')
