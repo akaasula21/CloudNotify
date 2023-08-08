@@ -19,7 +19,6 @@ DBNAME = "postgres"
 app = Flask(__name__)
 
 
-
 def create_subscriptions(topicArn, protocol, endpoint):
     response = sns.subscribe(TopicArn=topicArn, Protocol=protocol, Endpoint=endpoint, ReturnSubscriptionArn=True)
     return response['SubscriptionArn']
@@ -56,7 +55,8 @@ def upload():
     filename = secure_filename(uploaded_file.filename)
 
     # Upload file to AWS S3
-    s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name="us-east-2")
+    s3_client = boto3.client("s3", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY,
+                             region_name="us-east-2")
     s3_key = "media/" + filename
     s3_client.upload_fileobj(uploaded_file, AWS_STORAGE_BUCKET_NAME, s3_key)
 
@@ -117,7 +117,7 @@ def add():
 
 @app.route('/')
 @app.route('/mainpage', methods=["GET"])
-def mainpage():
+def login_page():
     email = request.args.get('email')
     password = request.args.get('password')
     print(email, password)
@@ -140,30 +140,6 @@ def mainpage():
         print("Database connection failed due to {}".format(e))
         return redirect("/")
 
-
-@app.route('/viewdetails/<email>')
-def viewdetails(email):
-    try:
-        conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM userdetails Where email ='" + email + "';")
-        conn.commit()
-        query_results = cur.fetchall()
-        print(query_results)
-        client = boto3.client('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
-        url = client.generate_presigned_url('get_object',
-                                            Params={
-                                                'Bucket': 'applab1',
-                                                'Key': 'images/' + str(query_results[0][3]),
-                                            },
-                                            ExpiresIn=3600)
-        url = str(url).split('?')[0]
-        item = {'email': query_results[0][0], 'password': query_results[0][1], 'desc': query_results[0][2], 'link': url}
-        print(item)
-        return render_template("viewdetails.html", item=item)
-    except Exception as e:
-        print("Database connection failed due to {}".format(e))
-        return redirect("/")
 
 
 @app.route('/initialize')
