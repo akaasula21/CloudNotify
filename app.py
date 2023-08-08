@@ -100,7 +100,7 @@ def add():
     # Lambda and SES integration
     lambda_client = boto3.client('lambda', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name='us-east-2')
     lambda_payload = {"email": email}
-    lambda_client.invoke(FunctionName='lambdaSNS', InvocationType='Event', Payload=json.dumps(lambda_payload))
+    lambda_client.invoke(FunctionName='akaasula_function', InvocationType='Event', Payload=json.dumps(lambda_payload))
 
     return redirect("/")
 
@@ -130,13 +130,6 @@ def mainpage():
     except Exception as e:
         print("Database connection failed due to {}".format(e))
         return redirect("/")
-
-
-@app.route('/search', methods=["POST"])
-def search():
-    email = request.form.get("email")
-    print(email)
-    return redirect("viewdetails/" + str(email))
 
 
 @app.route('/viewdetails/<email>')
