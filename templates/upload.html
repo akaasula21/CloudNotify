@@ -5,19 +5,31 @@
 </head>
 <body>
     <h2>File Upload</h2>
-    <form action="/upload" method="post" enctype="multipart/form-data">
+    <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+        <input type="email" name="your_email" placeholder="Your Email">
         <input type="file" name="file">
-        <!-- Additional fields -->
-        <input type="email" name="email1" placeholder="Email 1">
-        <input type="email" name="email2" placeholder="Email 2">
-        <input type="email" name="email3" placeholder="Email 3">
-        <input type="email" name="email4" placeholder="Email 4">
-        <input type="email" name="email5" placeholder="Email 5">
+        <div id="email-fields">
+            <input type="email" name="email1" placeholder="Email 1">
+        </div>
+        <button type="button" id="add-email">Add Email</button>
         <button type="submit">Upload</button>
     </form>
+
+    <script>
+        const addEmailButton = document.getElementById("add-email");
+        const emailFields = document.getElementById("email-fields");
+        let emailCounter = 2;  // Start with Email 2
+
+        addEmailButton.addEventListener("click", () => {
+            if (emailCounter <= 5) {
+                const newEmailField = document.createElement("input");
+                newEmailField.type = "email";
+                newEmailField.name = `email${emailCounter}`;
+                newEmailField.placeholder = `Email ${emailCounter}`;
+                emailFields.appendChild(newEmailField);
+                emailCounter++;
+            }
+        });
+    </script>
 </body>
 </html>
-
-
-
-

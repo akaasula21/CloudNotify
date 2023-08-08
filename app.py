@@ -41,7 +41,8 @@ def register():
 
 @app.route('/upload', methods=["POST"])
 def upload():
-    emails = request.form.getlist("emails[]")
+    emails = [request.form.get(f"email{i}") for i in range(1, 6) if request.form.get(f"email{i}")]
+    user_email = request.form.getlist("your_email")
     uploaded_file = request.files['file']
     filename = secure_filename(uploaded_file.filename)
 
@@ -50,25 +51,31 @@ def upload():
     s3_key = "media/" + filename
     s3_client.upload_fileobj(uploaded_file, AWS_STORAGE_BUCKET_NAME, s3_key)
 
-    # Process the email addresses and perform necessary actions
-    # Example: send emails to the provided email addresses
-  # Redirect to desired page after processing
+    conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
+    cur = conn.cursor()
+    for email in emails:
+        cur.execute(
+            "INSERT INTO fileuploadtable(user_name, email, filename) VALUES(%s, %s, %s);",
+            (user_email, email, s3_key))
 
-        # Database insertion
-        # conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
-        # cur = conn.cursor()
-        # cur.execute(
-        #     "INSERT INTO userdetails(email, imagelocation) VALUES(%s, %s);",
-        #     (user_email, s3_key)
-        # )
-        # conn.commit()
-        # f.close()
+    conn.commit()
+    # Trigger Lambda function
+    file_url = s3_client.generate_presigned_url('get_object', Params={'Bucket': AWS_STORAGE_BUCKET_NAME, 'Key': s3_key},
+                                                ExpiresIn=3600)
+    lambda_client = boto3.client("lambda", aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY,
+                                 region_name="us-east-2")
+    lambda_payload = {
+        "file_link": file_url,  # Replace with actual file link
+        "email_addresses": emails
+    }
+    lambda_response = lambda_client.invoke(
+        FunctionName="akaasula_function",
+        InvocationType="Event",
+        Payload=json.dumps(lambda_payload)
+    )
+    print("ALL DONE")
 
-        # Lambda and SES integration (if needed)
-    #
-    #     return redirect("/mainpage")  # Redirect to the main page or wherever you want
-    # else:
-    #     return redirect("/login")  # Redirect to the login page if not logged in
+    return redirect("/")  # Redirect to desired page after processing
 
 
 @app.route('/add', methods=["POST"])
@@ -105,20 +112,10 @@ def add():
         print("Connection failed due to {}".format(e))
         return redirect("/")
 
-
     # f.close()
-
-    # Lambda and SES integration
-    # lambda_client = boto3.client('lambda', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name='us-east-2')
-    # lambda_payload = {"email": email}
-    # print("email uploaded is", email)
-    # lambda_client.invoke(FunctionName='akaasula_function', InvocationType='Event', Payload=json.dumps(lambda_payload))
-
 
 
 @app.route('/')
-
-
 @app.route('/mainpage', methods=["GET"])
 def mainpage():
     email = request.args.get('email')
@@ -182,6 +179,9 @@ def initialize():
             print("cannot delete table")
         cur.execute(
             "CREATE TABLE userdetails( name VARCHAR(100), email VARCHAR(100), password VARCHAR(50));")
+        print("table created")
+        cur.execute(
+            "CREATE TABLE fileuploadtable(user_email VARCHAR(150), email VARCHAR(150), filename VARCHAR(200) );")
         print("table created")
 
         conn.commit()
