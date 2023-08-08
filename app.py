@@ -47,11 +47,6 @@ def register():
     return render_template("register.html")
 
 
-@app.route('/success')
-def success():
-    return render_template("success.html")
-
-
 @app.route('/upload', methods=["POST"])
 def upload():
     emails = [request.form.get(f"email{i}") for i in range(1, 6) if request.form.get(f"email{i}")]
@@ -90,7 +85,7 @@ def upload():
 
     print("ALL DONE")
 
-    return redirect("success.html")  # Redirect to desired page after processing
+    return redirect("/")  # Redirect to desired page after processing
 
 
 @app.route('/add', methods=["POST"])
