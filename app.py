@@ -71,7 +71,7 @@ def upload():
                                                 ExpiresIn=3600)
 
     message = "Hello, Click on the link to download the file from s3:   \n{}".format(file_url)
-    topic = sns.create_topic(Name="akaasula_topic")
+    topic = sns.create_topic(Name='akaasula_topic')
     for email in emails:
         if email:
             topicArn = topic['TopicArn']
