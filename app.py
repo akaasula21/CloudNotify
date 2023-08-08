@@ -96,7 +96,7 @@ def add():
         conn = psycopg2.connect(host=ENDPOINT, user=USR, password=PASSWORD, database=DBNAME, port='5432')
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO userdetails(name, email, password) VALUES(%s, %s, %s, %s);",
+            "INSERT INTO userdetails(name, email, password) VALUES(%s, %s, %s);",
             (name, email, password)
         )
         conn.commit()
