@@ -13,8 +13,8 @@ AWS_STORAGE_BUCKET_NAME = 'YOUR_BUCKET_NAME'
 
 ENDPOINT = "YOUR ENDPOINT"
 PORT = "5432"
-USR = "akaasula"
-PASSWORD = "adarsh123"
+USR = "your username"
+PASSWORD = "your password"
 DBNAME = "postgres"
 
 app = Flask(__name__)
