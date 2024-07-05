@@ -6,11 +6,12 @@ from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 import os
 
-ACCESS_KEY = "AKIA6AN2GCBWFE2ZXYNR"
-SECRET_KEY = "XqYkKtGw6dTYDBJEbKyolgA7cX0KRAfygh05ZGTM"
-AWS_STORAGE_BUCKET_NAME = 'akaasulabucket'
+#make sure you update this section 
+ACCESS_KEY = "YOUR_KEY"
+SECRET_KEY = "YOUR_KEY"
+AWS_STORAGE_BUCKET_NAME = 'YOUR_BUCKET_NAME'
 
-ENDPOINT = "database-6.ctpgewovurvk.us-east-2.rds.amazonaws.com"
+ENDPOINT = "YOUR ENDPOINT"
 PORT = "5432"
 USR = "akaasula"
 PASSWORD = "adarsh123"
