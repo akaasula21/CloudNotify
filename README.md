@@ -1,5 +1,5 @@
 
-# Flask Application Readme
+# CloudNotify
 
 This is a Flask web application that provides a simple file sharing platform. Users can register, log in, and upload files to an Amazon Web Services (AWS) S3 bucket. The application also integrates with AWS Simple Notification Service (SNS) to send email notifications to specified recipients when files are uploaded. Additionally, it utilizes PostgreSQL for user and file data storage.
 
